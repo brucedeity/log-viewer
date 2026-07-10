@@ -92,7 +92,10 @@
             </tab-content>
 
             <tab-content tab-value="raw">
-              <pre class="log-stack" v-html="highlightSearchResult(log.full_text, searchStore.query)"></pre>
+              <div class="relative">
+                <copy-content-button :text="rawCopyText(log)" class="absolute top-1 right-2 lg:right-4 z-10" />
+                <pre class="log-stack" v-html="highlightSearchResult(log.full_text, searchStore.query)"></pre>
+              </div>
               <template v-if="hasContext(log)">
                 <p class="mx-2 lg:mx-8 pt-2 border-t font-semibold text-gray-700 dark:text-gray-400 text-xs lg:text-sm">Context:</p>
                 <pre class="log-stack" v-html="highlightSearchResult(prepareContextForOutput(log.context), searchStore.query)"></pre>
@@ -156,6 +159,7 @@ import TabContent from "./TabContent.vue";
 import MailHtmlPreview from "./MailHtmlPreview.vue";
 import MailTextPreview from "./MailTextPreview.vue";
 import LaravelStackTraceDisplay from "./LaravelStackTraceDisplay.vue";
+import CopyContentButton from "./CopyContentButton.vue";
 import {computed} from "vue";
 
 const fileStore = useFileStore();
@@ -179,6 +183,16 @@ const getDataAtPath = (obj, path) => {
 
 const hasContext = (log) => {
   return log.context && Object.keys(log.context).length > 0;
+}
+
+const rawCopyText = (log) => {
+  let text = log.full_text || '';
+
+  if (hasContext(log)) {
+    text += '\n\nContext:\n' + JSON.stringify(log.context, null, 2);
+  }
+
+  return text;
 }
 
 const getExtraTabsForLog = (log) => {
