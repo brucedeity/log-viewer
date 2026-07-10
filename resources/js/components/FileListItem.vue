@@ -45,6 +45,10 @@
             </MenuItem>
 
             <MenuItem v-if="logFile.can_download" @click.stop v-slot="{ active }">
+              <CopyRawButton :identifier="logFile.identifier" :class="[active ? 'active' : '']" />
+            </MenuItem>
+
+            <MenuItem v-if="logFile.can_download" @click.stop v-slot="{ active }">
               <DownloadLink :url="logFile.download_url" :class="[active ? 'active' : '']" />
             </MenuItem>
 
@@ -82,6 +86,7 @@ import { replaceQuery, useDropdownDirection } from '../helpers.js';
 import { useRouter } from 'vue-router';
 import { handleKeyboardFileNavigation, handleKeyboardFileSettingsNavigation } from '../keyboardNavigation';
 import DownloadLink from "./DownloadLink.vue";
+import CopyRawButton from "./CopyRawButton.vue";
 
 const props = defineProps({
   logFile: {

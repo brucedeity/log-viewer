@@ -12,6 +12,11 @@
               <ArrowPathIcon class="w-5 h-5" />
             </button>
           </div>
+          <div class="hidden md:block" v-if="showLevelsDropdown">
+            <button @click="exportLogs" id="export-logs-button" title="Export the filtered logs to a .txt file" class="menu-button ml-2">
+              <ArrowDownTrayIcon class="w-5 h-5" />
+            </button>
+          </div>
           <div class="hidden md:block">
             <SiteSettingsDropdown class="ml-2" id="desktop-site-settings" />
           </div>
@@ -67,13 +72,15 @@
 </template>
 
 <script setup>
-import {computed, ref, watch} from 'vue';
+import {computed, ref, toRaw, watch} from 'vue';
 import { useRouter } from 'vue-router';
-import { ArrowPathIcon, Bars3Icon } from '@heroicons/vue/24/solid';
+import { ArrowPathIcon, ArrowDownTrayIcon, Bars3Icon } from '@heroicons/vue/24/solid';
 import { useLogViewerStore } from '../stores/logViewer.js';
 import { useSearchStore } from '../stores/search.js';
 import { useFileStore } from '../stores/files.js';
 import { usePaginationStore } from '../stores/pagination.js';
+import { useHostStore } from '../stores/hosts.js';
+import { useSeverityStore } from '../stores/severity.js';
 import Pagination from './Pagination.vue';
 import LevelButtons from './LevelButtons.vue';
 import SearchInput from './SearchInput.vue';
@@ -87,10 +94,40 @@ const fileStore = useFileStore();
 const logViewerStore = useLogViewerStore();
 const searchStore = useSearchStore();
 const paginationStore = usePaginationStore();
+const hostStore = useHostStore();
+const severityStore = useSeverityStore();
 
 const showLevelsDropdown = computed(() => {
   return fileStore.selectedFile || String(searchStore.query || '').trim().length > 0;
 });
+
+const exportLogs = () => {
+  const params = new URLSearchParams();
+
+  if (hostStore.hostQueryParam) {
+    params.set('host', hostStore.hostQueryParam);
+  }
+
+  if (fileStore.selectedFile?.identifier) {
+    params.set('file', fileStore.selectedFile.identifier);
+  }
+
+  params.set('direction', logViewerStore.direction);
+
+  if (searchStore.query) {
+    params.set('query', searchStore.query);
+  }
+
+  toRaw(severityStore.excludedLevels).forEach((level) => params.append('exclude_levels[]', level));
+  toRaw(fileStore.fileTypesExcluded).forEach((type) => params.append('exclude_file_types[]', type));
+
+  const link = document.createElement('a');
+  link.href = `${window.LogViewer.basePath}/api/logs/export?${params.toString()}`;
+  link.setAttribute('download', '');
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
 
 const displayLogs = computed(() => {
   return logViewerStore.logs && (logViewerStore.logs.length > 0 || !logViewerStore.hasMoreResults) && (logViewerStore.selectedFile || searchStore.hasQuery);

@@ -24,6 +24,9 @@ Route::middleware([
     Route::post('clear-cache-all', 'FilesController@clearCacheAll')->name('log-viewer.files.clear-cache-all');
     Route::post('delete-multiple-files', 'FilesController@deleteMultipleFiles')->name('log-viewer.files.delete-multiple-files');
 
+    Route::get('files/{fileIdentifier}/raw', 'FilesController@raw')->name('log-viewer.files.raw');
+
+    Route::get('logs/export', 'LogsController@export')->name('log-viewer.logs.export');
     Route::get('logs', 'LogsController@index')->name('log-viewer.logs');
 });
 
